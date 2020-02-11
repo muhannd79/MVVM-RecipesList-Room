@@ -1,44 +1,18 @@
 package org.fooshtech.recipeslist.viewmodels;
 
-import android.arch.lifecycle.LiveData;
-import android.arch.lifecycle.ViewModel;
+import android.app.Application;
+import android.arch.lifecycle.AndroidViewModel;
+import android.support.annotation.NonNull;
 
-import org.fooshtech.recipeslist.models.Recipe;
-import org.fooshtech.recipeslist.repositories.RecipeRepository;
 
-public class RecipeViewModel extends ViewModel {
+public class RecipeViewModel extends AndroidViewModel {
 
-    private RecipeRepository mRecipeRepository;
-    private String mRecipeId;
-    private boolean mDidRetrieveRecipe;
 
-    public RecipeViewModel() {
-        mRecipeRepository = RecipeRepository.getInstance();
-        mDidRetrieveRecipe = false;
+    public RecipeViewModel(@NonNull Application application) {
+        super(application);
+
     }
 
-    public LiveData<Recipe> getRecipe(){
-        return mRecipeRepository.getRecipe();
-    }
 
-    public LiveData<Boolean> isRecipeRequestTimedOut(){
-        return mRecipeRepository.isRecipeRequestTimedOut();
-    }
 
-    public void searchRecipeById(String recipeId){
-        mRecipeId = recipeId;
-        mRecipeRepository.searchRecipeById(recipeId);
-    }
-
-    public String getRecipeId() {
-        return mRecipeId;
-    }
-
-    public void setRetrievedRecipe(boolean retrievedRecipe){
-        mDidRetrieveRecipe = retrievedRecipe;
-    }
-
-    public boolean didRetrieveRecipe(){
-        return mDidRetrieveRecipe;
-    }
 }
