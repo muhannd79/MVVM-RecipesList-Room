@@ -33,4 +33,9 @@ public class Resource<T> {
     }
 
     public enum Status { SUCCESS, ERROR, LOADING}
+
+    // LOADING : assign when viewing the cache or when retrieving data from the cache
+    // SUCCESS : assign when Network request is successful
+    // ERROR   : assign when there is an error
+
 }

@@ -13,9 +13,10 @@ public class ApiResponse<T> {
 
     //if we pass the same name for the method it just will override
 
-    public  ApiResponse<T> create(Throwable error) {
-        return  new ApiErrorResponse<>(!error.getMessage().equals("") ? error.getMessage() : "Unknown error\nCheck network connection");
+    public ApiResponse<T> create(Throwable error){
+        return new ApiErrorResponse<>(error.getMessage().equals("") ? error.getMessage() : "Unknown error\nCheck network connection");
     }
+
 
     public ApiResponse<T> create(Response<T> response) {
 
