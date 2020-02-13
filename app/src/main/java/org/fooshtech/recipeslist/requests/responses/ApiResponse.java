@@ -2,7 +2,6 @@ package org.fooshtech.recipeslist.requests.responses;
 
 import android.util.Log;
 
-import java.io.IOError;
 import java.io.IOException;
 
 import retrofit2.Response;
@@ -55,21 +54,26 @@ public class ApiResponse<T> {
         }
     }
 
-    public class ApiErrorResponse<T> extends ApiResponse {
+
+
+    public class ApiErrorResponse<T> extends ApiResponse<T> {
+
         private String errorMessage;
 
-        public ApiErrorResponse(String errorMessage) {
+        ApiErrorResponse(String errorMessage) {
             this.errorMessage = errorMessage;
         }
 
         public String getErrorMessage() {
             return errorMessage;
         }
+
     }
 
-    public class  ApiEmptyResponse<T> extends ApiResponse {
+
+
+    public class ApiEmptyResponse<T> extends ApiResponse<T> {
         // we need to write any code because it will not do anything
     }
-
 
 }

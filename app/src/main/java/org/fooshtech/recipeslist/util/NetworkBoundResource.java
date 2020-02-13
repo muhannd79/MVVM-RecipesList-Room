@@ -26,7 +26,7 @@ public abstract class NetworkBoundResource<CacheObject, RequestObject> {
 
     // will setup the First view from the cache
     private void init(){
-
+        // The First Job is to looking at the DB Cache
         //update LiveData for loading status
         results.setValue((Resource<CacheObject>) Resource.loading(null));
 
@@ -89,7 +89,7 @@ public abstract class NetworkBoundResource<CacheObject, RequestObject> {
 
     // Returns a LiveData object that represents the resource that's implemented
     // in the base class.
-    // and we will use this method to return the Live Data (list) to UI
+    // and we will use this method to return the Live Data (list) to UI that is getting from Cache DB
     public final LiveData<Resource<CacheObject>> getAsLiveData(){
         return results;
     }
