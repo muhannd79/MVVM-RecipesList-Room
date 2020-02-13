@@ -1,12 +1,13 @@
 package org.fooshtech.recipeslist.util;
 
-import android.arch.lifecycle.LiveData;
-import android.arch.lifecycle.MediatorLiveData;
-import android.arch.lifecycle.Observer;
-import android.support.annotation.MainThread;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
-import android.support.annotation.WorkerThread;
+import androidx.lifecycle.LiveData;
+import androidx.lifecycle.MediatorLiveData;
+import androidx.lifecycle.Observer;
+import androidx.annotation.MainThread;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.annotation.WorkerThread;
+import android.util.Log;
 
 import org.fooshtech.recipeslist.AppExecutors;
 import org.fooshtech.recipeslist.requests.responses.ApiResponse;
@@ -14,6 +15,8 @@ import org.fooshtech.recipeslist.requests.responses.ApiResponse;
 // CacheObject: Type for the Resource data.   (database cache)
 // RequestObject: Type for the API response. (network request)
 public abstract class NetworkBoundResource<CacheObject, RequestObject> {
+
+    private static final String TAG = "NetworkBoundResource";
 
     private AppExecutors appExecutors;
     // the results object will be observed in the UI
@@ -41,7 +44,7 @@ public abstract class NetworkBoundResource<CacheObject, RequestObject> {
 
                 if(shouldFetch(cacheObject)){
                     // get data from the network
-
+                    fetchFromNetwork(dbSource);
                 }
                 else{
                     results.addSource(dbSource, new Observer<CacheObject>() {
@@ -56,10 +59,115 @@ public abstract class NetworkBoundResource<CacheObject, RequestObject> {
 
     }
 
+    /**
+     * 1) observe local db
+     * 2) if <condition/> query the network
+     * 3) stop observing the local db
+     * 4) insert new data into local db
+     * 5) begin observing local db again to see the refreshed data from network
+     * @param dbSource
+     */
+    private void fetchFromNetwork(final LiveData<CacheObject> dbSource){
+
+        Log.d(TAG, "fetchFromNetwork: called.");
+
+        // update LiveData for loading status
+        // it's viewing the cache and showing the loading status
+        results.addSource(dbSource, new Observer<CacheObject>() {
+            @Override
+            public void onChanged(@Nullable CacheObject cacheObject) {
+                setValue(Resource.loading(cacheObject));
+            }
+        });
+
+        // this line is returning LiveData Call Object
+        final LiveData<ApiResponse<RequestObject>> apiResponse = createCall();
+
+        results.addSource(apiResponse, new Observer<ApiResponse<RequestObject>>() {
+            @Override
+            public void onChanged(@Nullable final ApiResponse<RequestObject> requestObjectApiResponse) {
+
+                results.removeSource(dbSource);
+                results.removeSource(apiResponse);
+            /*
+                    3 cases:
+                       1) ApiSuccessResponse
+                       2) ApiErrorResponse
+                       3) ApiEmptyResponse
+            */
+
+                if(requestObjectApiResponse instanceof ApiResponse.ApiSuccessResponse) {
+                    Log.d(TAG, "onChanged: ApiSuccessResponse.");
+
+                    appExecutors.diskIO().execute(new Runnable() {
+                        @Override
+                        public void run() {
+                            // save the response to the local db
+                            saveCallResult((RequestObject) processResponse((ApiResponse.ApiSuccessResponse)requestObjectApiResponse));
+
+                          // we want to set the new value to ResultList , and to do what we need to do it on the MainThread
+                            appExecutors.mainThread().execute(new Runnable() {
+                                @Override
+                                public void run() {
+
+                                    results.addSource(loadFromDb(), new Observer<CacheObject>() {
+                                        @Override
+                                        public void onChanged(@Nullable CacheObject cacheObject) {
+                                            setValue(Resource.success(cacheObject));
+                                        }
+                                    });
+
+                                }
+                            });
+                        }
+                    });
+
+                    // This is successful request but with empty body
+                } else if(requestObjectApiResponse instanceof ApiResponse.ApiEmptyResponse) {
+                    Log.d(TAG, "onChanged: ApiEmptyResponse");
+
+                    appExecutors.mainThread().execute(new Runnable() {
+                        @Override
+                        public void run() {
+                            results.addSource(loadFromDb(), new Observer<CacheObject>() {
+                                @Override
+                                public void onChanged(@Nullable CacheObject cacheObject) {
+                                    setValue(Resource.success(cacheObject));
+                                }
+                            });
+                        }
+                    });
+
+
+                }  else if(requestObjectApiResponse instanceof ApiResponse.ApiErrorResponse){
+                    Log.d(TAG, "onChanged: ApiErrorResponse.");
+
+                    results.addSource(dbSource, new Observer<CacheObject>() {
+                        @Override
+                        public void onChanged(@Nullable CacheObject cacheObject) {
+                            setValue(
+                                    Resource.error(
+                                            ((ApiResponse.ApiErrorResponse) requestObjectApiResponse).getErrorMessage(),
+                                            cacheObject
+                                    )
+                            );
+                        }
+                    });
+                }
+            }
+        });
+    }
+
+    // setValue will be set the values immediately
     private void setValue(Resource<CacheObject> newValue){
         if(results.getValue() != newValue){
             results.setValue(newValue);
         }
+    }
+
+    // Here we are retrieving the body from the API response
+    private CacheObject processResponse(ApiResponse.ApiSuccessResponse response){
+        return (CacheObject) response.getBody();
     }
 
     // Called to save the result of the API response into the database.

@@ -1,17 +1,13 @@
 package org.fooshtech.recipeslist.viewmodels;
 
-import android.arch.lifecycle.LiveData;
-import android.arch.lifecycle.MutableLiveData;
-import android.arch.lifecycle.ViewModel;
+import androidx.lifecycle.LiveData;
+import androidx.lifecycle.MutableLiveData;
+import androidx.lifecycle.ViewModel;
 
-import org.fooshtech.recipeslist.models.Recipe;
-
-
-import java.util.List;
 
 import android.app.Application;
-import android.arch.lifecycle.AndroidViewModel;
-import android.support.annotation.NonNull;
+import androidx.lifecycle.AndroidViewModel;
+import androidx.annotation.NonNull;
 
 public class RecipeListViewModel extends AndroidViewModel {
 

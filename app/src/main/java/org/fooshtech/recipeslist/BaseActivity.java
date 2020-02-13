@@ -1,12 +1,10 @@
 package org.fooshtech.recipeslist;
 
-import android.support.constraint.ConstraintLayout;
-import android.support.v7.app.AppCompatActivity;
+import androidx.constraintlayout.widget.ConstraintLayout;
+import androidx.appcompat.app.AppCompatActivity;
 import android.view.View;
 import android.widget.FrameLayout;
 import android.widget.ProgressBar;
-
-import org.fooshtech.recipeslist.R;
 
 public abstract class BaseActivity extends AppCompatActivity {
 
