@@ -31,6 +31,7 @@ public class RecipeRepository {
         return instance;
     }
 
+
     private RecipeRepository(Context context) {
         recipeDao = RecipeDatabase.getInstance(context).getRecipeDao();
     }
