@@ -12,8 +12,10 @@ import org.fooshtech.recipeslist.AppExecutors;
 import org.fooshtech.recipeslist.models.Recipe;
 import org.fooshtech.recipeslist.persistence.RecipeDao;
 import org.fooshtech.recipeslist.persistence.RecipeDatabase;
+import org.fooshtech.recipeslist.requests.ServiceGenerator;
 import org.fooshtech.recipeslist.requests.responses.ApiResponse;
 import org.fooshtech.recipeslist.requests.responses.RecipeSearchResponse;
+import org.fooshtech.recipeslist.util.Constants;
 import org.fooshtech.recipeslist.util.NetworkBoundResource;
 import org.fooshtech.recipeslist.util.Resource;
 
@@ -57,7 +59,12 @@ public class RecipeRepository {
             @NonNull
             @Override
             protected LiveData<ApiResponse<RecipeSearchResponse>> createCall() {
-                return null;
+                return ServiceGenerator.getRecipeApi()
+                        .searchRecipe(
+                                Constants.API_KEY,
+                                query,
+                                String.valueOf(pageNumber)
+                        );
             }
         }.getAsLiveData();
     }
